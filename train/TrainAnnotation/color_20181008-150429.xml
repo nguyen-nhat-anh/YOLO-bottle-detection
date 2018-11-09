@@ -1,0 +1,22 @@
+<annotaion>
+  <folder>images/</folder>
+  <filename>color_20181008-150429.jpg</filename>
+  <size>
+    <width>640</width>
+    <height>480</height>
+    <depth>3</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>aquafina</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>280</xmin>
+      <ymin>29</ymin>
+      <xmax>409</xmax>
+      <ymax>474</ymax>
+    </bndbox>
+  </object>
+</annotaion>
