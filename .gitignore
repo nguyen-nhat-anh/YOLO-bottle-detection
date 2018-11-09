@@ -32,7 +32,7 @@ src
 *.swp
 *.map
 .idea/
-Read the Docs
+Read the Docss
 config.rst
 
 /.project
@@ -40,5 +40,6 @@ config.rst
 
 package-lock.json
 
-model_data/*.h5
-train/*.npz
+# Large files
+# model_data/*.h5
+# train/*.npz
