@@ -1,3 +1,5 @@
+# Requirements
+```conda env create -f environment.yml```
 # Usage
 * Object detection from images <br />
 ```python image_detection.py --input aquafina1.jpg```
