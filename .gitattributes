@@ -1,0 +1,2 @@
+model_data/*.h5 filter=lfs diff=lfs merge=lfs -text
+train/*.npz filter=lfs diff=lfs merge=lfs -text
