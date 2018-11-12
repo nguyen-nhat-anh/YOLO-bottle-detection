@@ -1,0 +1,22 @@
+<annotaion>
+  <folder>images/</folder>
+  <filename>img_654.jpg</filename>
+  <size>
+    <width>640</width>
+    <height>480</height>
+    <depth>3</depth>
+  </size>
+  <segmented>0</segmented>
+  <object>
+    <name>7up</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>344</xmin>
+      <ymin>184</ymin>
+      <xmax>434</xmax>
+      <ymax>442</ymax>
+    </bndbox>
+  </object>
+</annotaion>

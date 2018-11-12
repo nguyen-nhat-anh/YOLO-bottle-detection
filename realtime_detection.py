@@ -50,7 +50,7 @@ CLASS_LIST_PATH = 'model_data/bottle_classes.txt'
 YOLO_ANCHORS_PATH = 'model_data/yolo_anchors.txt'
 PRETRAINED_WEIGHTS_PATH = 'model_data/yolo_bottle_weights.h5'
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(2)
 height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
 
