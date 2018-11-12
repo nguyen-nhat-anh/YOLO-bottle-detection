@@ -18,6 +18,14 @@ from yad2k.models.keras_yolo import (preprocess_true_boxes, yolo_body,
                                      yolo_eval, yolo_head, yolo_loss)
 from yad2k.utils.draw_boxes import draw_boxes
 
+# Constants
+DATA_PATH = os.path.join('train', 'bottle.npz')
+MODEL_DIR = 'model_data'
+ANCHORS_PATH = os.path.join(MODEL_DIR, 'yolo_anchors.txt')
+CLASSES_PATH = os.path.join(MODEL_DIR, 'bottle_classes.txt')
+TOPLESS_YOLO_PATH = os.path.join(MODEL_DIR, 'yolo_topless.h5')
+YOLO_PATH = os.path.join(MODEL_DIR, 'yolo.h5')
+
 # Args
 argparser = argparse.ArgumentParser(
     description="Retrain or 'fine-tune' a pretrained YOLOv2 model for your own data.")
@@ -26,19 +34,19 @@ argparser.add_argument(
     '-d',
     '--data_path',
     help="path to numpy data file (.npz) containing np.object array 'boxes' and np.uint8 array 'images'",
-    default=os.path.join('..', 'DATA', 'underwater_data.npz'))
+    default=DATA_PATH)
 
 argparser.add_argument(
     '-a',
     '--anchors_path',
     help='path to anchors file, defaults to yolo_anchors.txt',
-    default=os.path.join('model_data', 'yolo_anchors.txt'))
+    default=ANCHORS_PATH)
 
 argparser.add_argument(
     '-c',
     '--classes_path',
     help='path to classes file, defaults to pascal_classes.txt',
-    default=os.path.join('..', 'DATA', 'underwater_classes.txt'))
+    default=CLASSES_PATH)
 
 # Default anchor boxes
 YOLO_ANCHORS = np.array(
@@ -53,18 +61,22 @@ def _main(args):
     class_names = get_classes(classes_path)
     anchors = get_anchors(anchors_path)
 
+    print("Loading training data ...")
     data = np.load(data_path) # custom data saved as a numpy file.
     #  has 2 arrays: an object array 'boxes' (variable length of boxes in each image)
     #  and an array of images 'images'
 
+    print("Preprocessing data ...")
     image_data, boxes = process_data(data['images'], data['boxes'])
 
     anchors = YOLO_ANCHORS
 
     detectors_mask, matching_true_boxes = get_detector_mask(boxes, anchors)
 
+    print("Creating model ...")
     model_body, model = create_model(anchors, class_names)
 
+    print("Start training ...")
     train(
         model,
         class_names,
@@ -192,14 +204,12 @@ def create_model(anchors, class_names, load_pretrained=True, freeze_body=True):
 
     if load_pretrained:
         # Save topless yolo:
-        topless_yolo_path = os.path.join('model_data', 'yolo_topless.h5')
-        if not os.path.exists(topless_yolo_path):
+        if not os.path.exists(TOPLESS_YOLO_PATH):
             print("CREATING TOPLESS WEIGHTS FILE")
-            yolo_path = os.path.join('model_data', 'yolo.h5')
-            model_body = load_model(yolo_path)
+            model_body = load_model(YOLO_PATH)
             model_body = Model(model_body.inputs, model_body.layers[-2].output)
-            model_body.save_weights(topless_yolo_path)
-        topless_yolo.load_weights(topless_yolo_path)
+            model_body.save_weights(TOPLESS_YOLO_PATH)
+        topless_yolo.load_weights(TOPLESS_YOLO_PATH)
 
     if freeze_body:
         for layer in topless_yolo.layers:
@@ -244,7 +254,7 @@ def train(model, class_names, anchors, image_data, boxes, detectors_mask, matchi
 
 
     logging = TensorBoard()
-    checkpoint = ModelCheckpoint("trained_stage_3_best.h5", monitor='val_loss',
+    checkpoint = ModelCheckpoint(os.path.join(MODEL_DIR,'trained_stage_3_best.h5'), monitor='val_loss',
                                  save_weights_only=True, save_best_only=True)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
 
@@ -254,11 +264,11 @@ def train(model, class_names, anchors, image_data, boxes, detectors_mask, matchi
               batch_size=32,
               epochs=5,
               callbacks=[logging])
-    model.save_weights('trained_stage_1.h5')
+    model.save_weights(os.path.join(MODEL_DIR,'trained_stage_1.h5'))
 
     model_body, model = create_model(anchors, class_names, load_pretrained=False, freeze_body=False)
 
-    model.load_weights('trained_stage_1.h5')
+    model.load_weights(os.path.join(MODEL_DIR,'trained_stage_1.h5'))
 
     model.compile(
         optimizer='adam', loss={
@@ -270,19 +280,19 @@ def train(model, class_names, anchors, image_data, boxes, detectors_mask, matchi
               np.zeros(len(image_data)),
               validation_split=0.1,
               batch_size=8,
-              epochs=30,
+              epochs=10,
               callbacks=[logging])
 
-    model.save_weights('trained_stage_2.h5')
+    model.save_weights(os.path.join(MODEL_DIR,'trained_stage_2.h5'))
 
     model.fit([image_data, boxes, detectors_mask, matching_true_boxes],
               np.zeros(len(image_data)),
               validation_split=0.1,
               batch_size=8,
-              epochs=30,
+              epochs=10,
               callbacks=[logging, checkpoint, early_stopping])
 
-    model.save_weights('trained_stage_3.h5')
+    model.save_weights(os.path.join(MODEL_DIR,'trained_stage_3.h5'))
 
 def draw(model_body, class_names, anchors, image_data, image_set='val',
             weights_name='trained_stage_3_best.h5', out_path="output_images", save_all=True):
@@ -302,7 +312,7 @@ def draw(model_body, class_names, anchors, image_data, image_set='val',
         ValueError("draw argument image_set must be 'train', 'val', or 'all'")
     # model.load_weights(weights_name)
     print(image_data.shape)
-    model_body.load_weights(weights_name)
+    model_body.load_weights(os.path.join(MODEL_DIR,weights_name))
 
     # Create output variables for prediction.
     yolo_outputs = yolo_head(model_body.output, anchors, len(class_names))
@@ -313,8 +323,6 @@ def draw(model_body, class_names, anchors, image_data, image_set='val',
     # Run prediction on overfit image.
     sess = K.get_session()  # TODO: Remove dependence on Tensorflow session.
 
-    if  not os.path.exists(out_path):
-        os.makedirs(out_path)
     for i in range(len(image_data)):
         out_boxes, out_scores, out_classes = sess.run(
             [boxes, scores, classes],
@@ -329,14 +337,10 @@ def draw(model_body, class_names, anchors, image_data, image_set='val',
         # Plot image with predicted boxes.
         image_with_boxes = draw_boxes(image_data[i][0], out_boxes, out_classes,
                                     class_names, out_scores)
-        # Save the image:
-        if save_all or (len(out_boxes) > 0):
-            image = PIL.Image.fromarray(image_with_boxes)
-            image.save(os.path.join(out_path,str(i)+'.png'))
 
         # To display (pauses the program):
-        # plt.imshow(image_with_boxes, interpolation='nearest')
-        # plt.show()
+        plt.imshow(image_with_boxes, interpolation='nearest')
+        plt.show()
 
 
 
