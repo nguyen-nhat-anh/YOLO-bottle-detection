@@ -1,6 +1,7 @@
 YOLOv2 object detection using keras (YAD2K):
 https://github.com/allanzelener/YAD2K
 # Requirements
+```conda env create -f environment.yml```
  * python 3
  * numpy
  * opencv-python
@@ -11,7 +12,6 @@ https://github.com/allanzelener/YAD2K
  * tensorflow/tensorflow-gpu
  * keras
  * font FiraMono-Medium.otf: https://github.com/mozilla/Fira/blob/master/otf/FiraMono-Medium.otf <br />
-```conda env create -f environment.yml```
 # Usage
 * Object detection from images <br />
 ```python image_detection.py --input aquafina1.jpg```
