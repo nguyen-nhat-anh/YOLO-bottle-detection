@@ -10,7 +10,7 @@ https://github.com/allanzelener/YAD2K
  * lxml
  * tensorflow/tensorflow-gpu
  * keras
- * font FiraMono-Medium.otf: https://github.com/mozilla/Fira/blob/master/otf/FiraMono-Medium.otf
+ * font FiraMono-Medium.otf: https://github.com/mozilla/Fira/blob/master/otf/FiraMono-Medium.otf <br />
 ```conda env create -f environment.yml```
 # Usage
 * Object detection from images <br />
