@@ -17,9 +17,10 @@ from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
 from yad2k.models.keras_yolo import (preprocess_true_boxes, yolo_body,
                                      yolo_eval, yolo_head, yolo_loss)
 from yad2k.utils.draw_boxes import draw_boxes
+from sklearn.utils import shuffle
 
 # Constants
-DATA_PATH = os.path.join('train', 'bottle.npz')
+DATA_PATH = os.path.join('train', 'bottle_all.npz')
 MODEL_DIR = 'model_data'
 ANCHORS_PATH = os.path.join(MODEL_DIR, 'yolo_anchors.txt')
 CLASSES_PATH = os.path.join(MODEL_DIR, 'bottle_classes.txt')
@@ -87,13 +88,13 @@ def _main(args):
         matching_true_boxes
     )
 
-    draw(model_body,
-        class_names,
-        anchors,
-        image_data,
-        image_set='val', # assumes training/validation split is 0.9
-        weights_name='trained_stage_3_best.h5',
-        save_all=False)
+    #draw(model_body,
+    #    class_names,
+    #    anchors,
+    #    image_data,
+    #    image_set='val', # assumes training/validation split is 0.9
+    #    weights_name='trained_stage_3_best.h5',
+    #    save_all=False)
 
 
 def get_classes(classes_path):
@@ -116,6 +117,7 @@ def get_anchors(anchors_path):
 
 def process_data(images, boxes=None):
     '''processes the data'''
+    images, boxes = shuffle(images,boxes,random_state=42)
     images = [PIL.Image.fromarray(i) for i in images]
     orig_size = np.array([images[0].width, images[0].height])
     orig_size = np.expand_dims(orig_size, axis=0)

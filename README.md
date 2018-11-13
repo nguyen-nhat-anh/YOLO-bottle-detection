@@ -11,6 +11,7 @@ https://github.com/allanzelener/YAD2K
  * lxml
  * tensorflow/tensorflow-gpu
  * keras
+ * sklearn
  * font FiraMono-Medium.otf: https://github.com/mozilla/Fira/blob/master/otf/FiraMono-Medium.otf <br />
 # Usage
 * Object detection from images <br />

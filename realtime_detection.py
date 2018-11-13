@@ -48,9 +48,9 @@ def predict(sess, image):
 
 CLASS_LIST_PATH = 'model_data/bottle_classes.txt'
 YOLO_ANCHORS_PATH = 'model_data/yolo_anchors.txt'
-PRETRAINED_WEIGHTS_PATH = 'model_data/yolo_bottle_weights.h5'
+PRETRAINED_WEIGHTS_PATH = 'model_data/yolo_bottle_weights2.h5'
 
-cap = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(1)
 height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
 
@@ -63,7 +63,7 @@ anchors = read_anchors(YOLO_ANCHORS_PATH)
 yolo_model, model = create_model(anchors, class_names)
 yolo_model.load_weights(PRETRAINED_WEIGHTS_PATH)
 yolo_outputs = yolo_head(yolo_model.output, anchors, len(class_names))
-boxes, scores, classes = yolo_eval(yolo_outputs, image_shape)
+boxes, scores, classes = yolo_eval(yolo_outputs, image_shape, score_threshold=.15, iou_threshold=.3)
 
 while True:
     ret, original_frame = cap.read()
