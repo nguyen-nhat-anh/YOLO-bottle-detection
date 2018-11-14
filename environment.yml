@@ -65,6 +65,10 @@ dependencies:
   - jupyter_console=6.0.0=py36_0
   - jupyter_core=4.4.0=py36_0
   - kiwisolver=1.0.1=py36h6538335_0
+  - libiconv=1.15=h1df5818_7
+  - libxml2=2.9.8=hadb2253_1
+  - libxslt=1.1.32=hf6f1972_0
+  - lxml=4.2.5=py36hef2cd61_0
   - m2w64-gcc-libgfortran=5.3.0=6
   - m2w64-gcc-libs=5.3.0=7
   - m2w64-gcc-libs-core=5.3.0=7
@@ -115,4 +119,6 @@ dependencies:
   - winpty=0.4.3=4
   - pip:
     - opencv-python==3.4.3.18
+    - scikit-learn==0.20.0
+    - sklearn==0.0
 

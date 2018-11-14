@@ -12,7 +12,6 @@ https://github.com/allanzelener/YAD2K
  * tensorflow/tensorflow-gpu
  * keras
  * sklearn
- * font FiraMono-Medium.otf: https://github.com/mozilla/Fira/blob/master/otf/FiraMono-Medium.otf <br />
 # Usage
 * Object detection from images <br />
 ```python image_detection.py --input aquafina1.jpg```

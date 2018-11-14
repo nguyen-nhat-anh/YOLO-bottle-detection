@@ -9,6 +9,14 @@ from yad2k.models.keras_yolo import yolo_head, yolo_eval
 from retrain_yolo import create_model
 import cv2
 
+INPUT_PATH = 'images'
+OUTPUT_PATH = 'out'
+
+CLASS_LIST_PATH = 'model_data/bottle_classes.txt'
+YOLO_ANCHORS_PATH = 'model_data/yolo_anchors.txt'
+PRETRAINED_WEIGHTS_PATH = 'model_data/yolo_bottle_weights3.h5'
+
+
 def preprocess_image(image, model_image_size):
     resized_image = image.resize(tuple(reversed(model_image_size)), Image.BICUBIC)
     image_data = np.array(resized_image, dtype='float32')
@@ -17,19 +25,29 @@ def preprocess_image(image, model_image_size):
     return image, image_data
 
 
-
 argparser = argparse.ArgumentParser(description="Bottle detection for images using YOLOv2")
 argparser.add_argument(
-    '-i',
-    '--input',
-    help="image file name (.jpg)")
+    'input',
+    help="image file name (.jpg)"
+)
+argparser.add_argument(
+    '--score_threshold',
+    type=float,
+    default=0.15,
+    help="box confidence threshold"
+)
+argparser.add_argument(
+    '--iou_threshold',
+    type=float,
+    default=0.3,
+    help="non-max suppression overlap threshold"
+)
+argparser.add_argument(
+    '--weights',
+    default=PRETRAINED_WEIGHTS_PATH,
+    help="model weights path"
+)
 
-INPUT_PATH = 'images'
-OUTPUT_PATH = 'out'
-
-CLASS_LIST_PATH = 'model_data/bottle_classes.txt'
-YOLO_ANCHORS_PATH = 'model_data/yolo_anchors.txt'
-PRETRAINED_WEIGHTS_PATH = 'model_data/yolo_bottle_weights.h5'
 
 def _main(args):
     def predict(sess, image):
@@ -38,7 +56,7 @@ def _main(args):
 
         # Run the session with the correct tensors and choose the correct placeholders in the feed_dict.
         # You'll need to use feed_dict={yolo_model.input: ... , K.learning_phase(): 0})
-        out_scores, out_boxes, out_classes = sess.run([scores, boxes, classes], feed_dict = {yolo_model.input:image_data, K.learning_phase():0})
+        out_scores, out_boxes, out_classes = sess.run([scores, boxes, classes], feed_dict={yolo_model.input: image_data, K.learning_phase(): 0})
 
         # Print predictions info
         print('Found {} boxes'.format(len(out_boxes)))
@@ -52,7 +70,7 @@ def _main(args):
 
     image_path = os.path.join(INPUT_PATH, args.input)
     input = cv2.imread(image_path)
-    if (input is None):
+    if input is None:
         print("Error opening image file")
         return
     height = float(input.shape[0])
@@ -65,9 +83,9 @@ def _main(args):
     class_names = read_classes(CLASS_LIST_PATH)
     anchors = read_anchors(YOLO_ANCHORS_PATH)
     yolo_model, model = create_model(anchors, class_names)
-    yolo_model.load_weights(PRETRAINED_WEIGHTS_PATH)
+    yolo_model.load_weights(args.weights)
     yolo_outputs = yolo_head(yolo_model.output, anchors, len(class_names))
-    boxes, scores, classes = yolo_eval(yolo_outputs, image_shape)
+    boxes, scores, classes = yolo_eval(yolo_outputs, image_shape, score_threshold=args.score_threshold, iou_threshold=args.iou_threshold)
 
     process_img = cv2.cvtColor(input, cv2.COLOR_BGR2RGB)
     process_img = Image.fromarray(process_img)
@@ -77,9 +95,11 @@ def _main(args):
     cv2.imshow('prediction', output)
     cv2.waitKey(0)
     
-    output_path = os.path.join(OUTPUT_PATH, args.input)
-    cv2.imwrite(output_path, output)
-    print("Saved: ", output_path)
+    output_file_path = os.path.join(OUTPUT_PATH, args.input)
+    if not os.path.exists(OUTPUT_PATH):
+        os.mkdir(OUTPUT_PATH)
+    cv2.imwrite(output_file_path, output)
+    print("Saved: ", output_file_path)
 
 
 if __name__ == '__main__':
